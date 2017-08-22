@@ -107,6 +107,9 @@ class SupportedRecipes:
                 result.add(supportedby)
         return sorted(result)
 
+    def recipe_check_preferred_version(self, pn, pv, preferred_version):
+        if pv.find(preferred_version.strip('%'),1) == -1:
+            bb.fatal('preferred version %s of %s not available, got version: %s' % (preferred_version, pn, pv))
 
 def load_supported_recipes(d):
 
@@ -363,6 +366,10 @@ def check_build(d, event, tinfoil=None):
             supportedby = supported_recipes.recipe_supportedby(pn_stripped, collection)
             if not supportedby:
                 unsupported[pn_stripped] = collection
+            key = 'PREFERRED_VERSION_%s' % pn_stripped
+            preferred_version = d.getVar(key, True)
+            if preferred_version:
+                supported_recipes.recipe_check_preferred_version(pn, pndata["version"], preferred_version)
             if report_sources:
                 def add_rows(rows):
                     for row in rows:
